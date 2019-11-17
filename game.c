@@ -1,3 +1,6 @@
+#ifdef __GLASGOW_HASKELL__
+#include "DAWG_stub.h"
+#endif
 
 #include "game.h"
 #include "loaders.h"
@@ -29,6 +32,8 @@ void loop(SDL_Renderer* renderer, double dt, int frame)
     totalTime += dt;
 
     drawAt(renderer, tHello, (int)(sin((double)totalTime * 4) * 100), 0);
+
+    printf("%i\n", query_dawg(0, frame / 5000, 0));
 
     if ( frame % 5000 == 0 ) {
         printf("%f\n", 1 / dt);

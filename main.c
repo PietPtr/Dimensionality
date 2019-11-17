@@ -1,3 +1,4 @@
+#include <HsFFI.h>
 #include "game.h"
 #include "consts.h"
 #include "main.h"
@@ -44,8 +45,25 @@ void stop()
     SDL_Quit();
 }
 
+int parseScale(int argc, char* args[]) {
+	int scale = DEFAULT_SCALE;
+	if (argc <= 1) {
+		printf("Supply a scale argument for a different scale.\n");
+		return scale;
+	}
+	int scaleArg = atoi(args[1]);
+	if (scaleArg != 0) {
+		return scaleArg;
+	} else {
+		return scale;
+	}
+}
+
+
 int main( int argc, char* args[] )
 {
+    hs_init(&argc, &args);
+
 	int scale = parseScale(argc, args);
 
 	if( !initialize(scale) ) {
@@ -92,24 +110,7 @@ int main( int argc, char* args[] )
         frame ++;
     }
 
-    //Free resources and close SDL
-    close();
-
+    stop();
+    hs_exit();
     return 0;
-}
-
-int parseScale(int argc, char* args[]) {
-	int scale = DEFAULT_SCALE;
-	if (argc <= 1) {
-		printf("Supply a scale argument for a different scale.\n");
-		return scale;
-	}
-	int scaleArg = atoi(args[1]);
-	if (scaleArg != NULL) {
-		return scaleArg;
-	} else {
-		return scale;
-	}
-
-
 }
