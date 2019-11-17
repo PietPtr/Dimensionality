@@ -2,8 +2,8 @@
 #define EVENT_CODES_H
 
 // General values
-#define SCREEN_WIDTH 256
-#define SCREEN_HEIGHT 192
+#define SCREEN_WIDTH 640
+#define SCREEN_HEIGHT 360
 
 #define DEFAULT_SCALE 2
 

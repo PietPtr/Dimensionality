@@ -9,13 +9,13 @@
 #include <math.h>
 
 SDL_Surface* screen = NULL;
-SDL_Texture* tHello = NULL;
+SDL_Texture* tCharacter = NULL;
 
 double totalTime = 0;
 
 void init()
 {
-    tHello = loadBMP("resources/hello_world.bmp");
+    tCharacter = loadBMP("resources/player.bmp");
 }
 
 int events(SDL_Event* event)
@@ -31,16 +31,51 @@ void loop(SDL_Renderer* renderer, double dt, int frame)
 {
     totalTime += dt;
 
-    drawAt(renderer, tHello, (int)(sin((double)totalTime * 4) * 100), 0);
+    drawMenu(renderer);
 
-    printf("%i\n", query_dawg(0, frame / 5000, 0));
-
-    if ( frame % 5000 == 0 ) {
+    if ( (frame - 100) % 5000 == 0 ) {
         printf("%f\n", 1 / dt);
     }
 }
 
-void drawAt(SDL_Renderer* renderer, SDL_Texture* texture, int x, int y) {
+#define PADDING 5
+#define MENU_BG_GRAY 100
+#define MENU_FG_GRAY 200
+// Global becasue other stuff wants to render relative to these
+SDL_Rect navigatorContainer;
+SDL_Rect menuContainer;
+
+void drawMenu(SDL_Renderer* renderer)
+{
+    SDL_SetRenderDrawColor(renderer, MENU_BG_GRAY, MENU_BG_GRAY, MENU_BG_GRAY, 255);
+
+    navigatorContainer = (SDL_Rect) {
+        .x = PADDING,
+        .y = PADDING,
+        .w = SCREEN_HEIGHT - PADDING,
+        .h = SCREEN_HEIGHT - 2 * PADDING };
+    menuContainer = (SDL_Rect) {
+        .x = navigatorContainer.x + navigatorContainer.w + PADDING,
+        .y = PADDING,
+        .w = SCREEN_WIDTH - navigatorContainer.w - 3 * PADDING,
+        .h = SCREEN_HEIGHT - 2 * PADDING };
+
+    SDL_RenderDrawRect(renderer, &navigatorContainer);
+    SDL_RenderDrawRect(renderer, &menuContainer);
+}
+
+void drawNavigator(SDL_Renderer* renderer)
+{
+
+}
+
+void drawCharacter(SDL_Renderer* renderer)
+{
+
+}
+
+void drawAt(SDL_Renderer* renderer, SDL_Texture* texture, int x, int y)
+{
     int width, height;
     SDL_QueryTexture(texture, NULL, NULL, &width, &height);
 
@@ -50,5 +85,5 @@ void drawAt(SDL_Renderer* renderer, SDL_Texture* texture, int x, int y) {
     dstrect.w = width;
     dstrect.h = height;
 
-    SDL_RenderCopy(renderer, tHello, NULL, &dstrect);
+    SDL_RenderCopy(renderer, texture, NULL, &dstrect);
 }

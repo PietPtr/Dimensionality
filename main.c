@@ -6,6 +6,7 @@
 #include <stdbool.h>
 #include <math.h>
 #include <sys/time.h>
+#include <unistd.h>
 
 SDL_Window* window = NULL;
 SDL_Renderer* renderer = NULL;
@@ -28,7 +29,7 @@ bool initialize(int scale)
     }
 
 	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-	SDL_SetRenderDrawColor(renderer, 255, 100, 0, 255);
+	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 
 	int error = SDL_RenderSetScale(renderer, scale, scale);
 	// printf("error %s %p\n", SDL_GetError(), renderer);
@@ -98,7 +99,7 @@ int main( int argc, char* args[] )
         if ( dt < 0 ) {
             dt = (time + 1) - prevTime;
         }
-
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 		SDL_RenderClear(renderer);
 
         loop(renderer, dt, frame);
