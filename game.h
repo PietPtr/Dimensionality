@@ -9,5 +9,10 @@ void loop(SDL_Renderer* renderer, double dt, int frame);
 void drawMenu(SDL_Renderer* renderer);
 void drawNavigator(SDL_Renderer* renderer);
 void drawAt(SDL_Renderer* renderer, SDL_Texture* texture, int x, int y);
+void drawText(SDL_Renderer* renderer, char text[], int x, int y);
+void drawDimensions(SDL_Renderer* renderer, int position[], int x, int y);
+Uint8 r(int color);
+Uint8 g(int color);
+Uint8 b(int color);
 
 #endif

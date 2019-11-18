@@ -4,6 +4,9 @@ module DAWG where
 
 import Debug.Trace
 import Foreign.C.Types
+import Foreign.Ptr
+import Foreign.Marshal.Array
+import Control.Monad
 
 type Seed = Int
 type Coordinate = [Int]
@@ -34,12 +37,14 @@ world :: Int -> Coordinate -> Tile
 world seed point = tile
     where
         primitives = [
-              Box [-2, -3, 0] [2, 4, 0]
-            , Box [-2, 0, -2] [5, 0, 2]
-            , Sphere [5, 0, 0] 2]
+              Box [-2, -2, -2] [2, 2, 2]]
+
+        negators = []--[ Box [-1, -1, -1] [1, 2, 1]]
 
         inPrimitive = foldl (||) False (map (isIn point) primitives)
-        tile = if inPrimitive then Wall else Empty
+        inNegator = foldl (||) False (map (isIn point) negators)
+        isSet = inPrimitive && (not inNegator)
+        tile = if isSet then Wall else Empty
 
 isIn :: Coordinate -> Primitive -> Bool
 point `isIn` (Sphere position radius) = distSquared < (radius ^ 2)
@@ -75,10 +80,33 @@ queryPoint3d x y z = case world 0 [x, y, z] of
     Empty -> 0
     Wall -> 1
 
-query_dawg :: CInt -> CInt -> CInt -> CInt
-query_dawg x y z = fromIntegral $ queryPoint3d (fromIntegral x) (fromIntegral y) (fromIntegral z)
+queryPoint12d :: [Int] -> Int
+queryPoint12d position = case world 0 position of
+    Empty -> 0
+    Wall -> 1
 
-foreign export ccall query_dawg :: CInt -> CInt -> CInt -> CInt
+query_dawg_12d :: CInt -> CInt -> CInt -> CInt -> CInt -> CInt -> CInt -> CInt -> CInt -> CInt -> CInt -> CInt -> CInt
+query_dawg_12d c0 c1 c2 c3 c4 c5 c6 c7 c8 c9 c10 c11 =
+    fromIntegral $ queryPoint12d
+        [(fromIntegral c0), (fromIntegral c1), (fromIntegral c2),
+         (fromIntegral c3), (fromIntegral c4), (fromIntegral c5),
+         (fromIntegral c6), (fromIntegral c7), (fromIntegral c8),
+         (fromIntegral c9), (fromIntegral c10), (fromIntegral c11)]
+
+foreign export ccall query_dawg_12d :: CInt -> CInt -> CInt -> CInt -> CInt -> CInt -> CInt -> CInt -> CInt -> CInt -> CInt -> CInt -> CInt
+
+queryPoint :: [CInt] -> CInt
+queryPoint position = case world 0 (map fromIntegral position) of
+    Empty -> 0
+    Wall -> 1
+
+query_dawg :: Ptr CInt -> IO CInt
+query_dawg positionPtr = (liftM (queryPoint) list)
+    where
+        list = peekArray 12 positionPtr
+        tile = 0
+
+foreign export ccall query_dawg :: Ptr CInt -> IO CInt
 
 main = do
-    print $ printWorld $ query3d 40
+    print $ printWorld $ query3d 3
