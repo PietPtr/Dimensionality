@@ -12,6 +12,7 @@ SDL_Surface* screen = NULL;
 SDL_Texture* tCharacter = NULL;
 
 double totalTime = 0;
+int dimension = 1;
 
 void init()
 {
@@ -32,6 +33,7 @@ void loop(SDL_Renderer* renderer, double dt, int frame)
     totalTime += dt;
 
     drawMenu(renderer);
+    drawNavigator(renderer);
 
     if ( (frame - 100) % 5000 == 0 ) {
         printf("%f\n", 1 / dt);
@@ -64,9 +66,62 @@ void drawMenu(SDL_Renderer* renderer)
     SDL_RenderDrawRect(renderer, &menuContainer);
 }
 
+#define NAVBOX_SIZE 32
+#define LINE_WHITE 255
+#define NAV_LENGTH 256
+#define NAV_SQUARE_SIZE 64
 void drawNavigator(SDL_Renderer* renderer)
 {
+    SDL_Rect center = {
+        navigatorContainer.x + navigatorContainer.w / 2,
+        navigatorContainer.y + navigatorContainer.h / 2
+    };
 
+
+    double angle = M_PI / dimension;
+
+    for (int d = 0; d < dimension; d++) {
+        SDL_SetRenderDrawColor(renderer, LINE_WHITE, LINE_WHITE, LINE_WHITE, 255);
+        int dirx = (int)(cos(angle * d + 0.5 * M_PI) * NAV_LENGTH);
+        int diry = (int)(sin(angle * d + 0.5 * M_PI) * NAV_LENGTH);
+
+        SDL_RenderDrawLine(renderer,
+            center.x - dirx,
+            center.y - diry,
+            center.x + dirx,
+            center.y + diry
+        );
+
+        SDL_RenderFillRect(renderer, &((SDL_Rect) {
+            center.x - dirx - NAV_SQUARE_SIZE / 2,
+            center.y - diry - NAV_SQUARE_SIZE / 2,
+            NAV_SQUARE_SIZE,
+            NAV_SQUARE_SIZE
+        }));
+
+        SDL_RenderFillRect(renderer, &((SDL_Rect) {
+            center.x + dirx - NAV_SQUARE_SIZE / 2,
+            center.y + diry - NAV_SQUARE_SIZE / 2,
+            NAV_SQUARE_SIZE,
+            NAV_SQUARE_SIZE
+        }));
+
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+
+        SDL_RenderFillRect(renderer, &((SDL_Rect) {
+            center.x - dirx - NAV_SQUARE_SIZE / 2 + 1,
+            center.y - diry - NAV_SQUARE_SIZE / 2 + 1,
+            NAV_SQUARE_SIZE - 2,
+            NAV_SQUARE_SIZE - 2
+        }));
+
+        SDL_RenderFillRect(renderer, &((SDL_Rect) {
+            center.x + dirx - NAV_SQUARE_SIZE / 2 + 1,
+            center.y + diry - NAV_SQUARE_SIZE / 2 + 1,
+            NAV_SQUARE_SIZE - 2,
+            NAV_SQUARE_SIZE - 2
+        }));
+    }
 }
 
 void drawCharacter(SDL_Renderer* renderer)
