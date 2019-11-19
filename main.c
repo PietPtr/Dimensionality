@@ -74,21 +74,24 @@ int main( int argc, char* args[] )
 
     bool quit = false;
 
-    SDL_Event e;
 
     int frame = 0;
     double prevTime = 0;
+    int lastHandledTime = -1;
 
     while ( !quit ) {
+        SDL_Event e;
         int result;
         do {
-            result = SDL_PollEvent(&e);
-            int code = events(&e);
-            switch (code) {
-                case CODE_QUIT:
+            if (e.window.timestamp != lastHandledTime) {
+                lastHandledTime = e.window.timestamp;
+                int code = events(&e);
+                switch (code) {
+                    case CODE_QUIT:
                     quit = true;
+                }
             }
-        } while ( result != 0 );
+        } while ( SDL_PollEvent(&e) != 0 );
 
         struct timeval tv;
         gettimeofday(&tv, NULL);

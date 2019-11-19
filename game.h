@@ -14,6 +14,12 @@ void drawDimensions(SDL_Renderer* renderer, int position[], int x, int y);
 Uint8 r(int color);
 Uint8 g(int color);
 Uint8 b(int color);
-void handleMouse(int x, int y, int xrel, int yrel);
+void handleClick(int button, int x, int y);
+void handleMouseMove(int x, int y, int xrel, int yrel);
+
+struct Axis {
+    int axis;
+    int direction;
+};
 
 #endif

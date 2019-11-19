@@ -21,7 +21,7 @@ int dimensionColors[] = {
     0xff00ff, 0xffff00, 0xff8000, 0x0080ff,
     0x8080ff, 0xff0080, 0x80ff80, 0x8000ff };
 int position[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-int selectedAxis = -1;
+struct Axis selectedAxis = { -1, 1 };
 
 void init()
 {
@@ -33,14 +33,19 @@ void init()
 
 int events(SDL_Event* event)
 {
-    if ( event->window.type == SDL_QUIT ) {
-        return CODE_QUIT;
-    } else if (event->window.type == SDL_MOUSEMOTION) {
-        handleMouse(event->motion.x, event->motion.y,
-            event->motion.xrel, event->motion.yrel);
-    } else {
-        return CODE_NONE;
+    switch (event->window.type) {
+        case SDL_QUIT:
+            return CODE_QUIT;
+        case SDL_MOUSEMOTION:
+            handleMouseMove(event->motion.x, event->motion.y,
+                event->motion.xrel, event->motion.yrel);
+            return CODE_NONE;
+        case SDL_MOUSEBUTTONUP:
+            printf("%i\n", event->button.timestamp);
+            handleClick(event->button.button, event->button.x, event->button.y);
+            return CODE_NONE;
     }
+    return CODE_NONE;
 }
 
 void loop(SDL_Renderer* renderer, double dt, int frame)
@@ -106,13 +111,13 @@ void drawNavigator(SDL_Renderer* renderer)
         int diry = (int)(sin(angle * d + 0.5 * M_PI) * NAV_LENGTH);
 
         int color = dimensionColors[d];
-        if (selectedAxis % dimension == d && selectedAxis / dimension == 0) {
+        if (selectedAxis.axis == d && selectedAxis.direction == -1) {
             SDL_SetRenderDrawColor(renderer, r(color), g(color), b(color), 255);
         }
         SDL_RenderDrawLine(renderer, center.x, center.y, center.x + dirx, center.y + diry);
         SDL_SetRenderDrawColor(renderer, LINE_WHITE, LINE_WHITE, LINE_WHITE, 255);
 
-        if (selectedAxis % dimension == d && selectedAxis / dimension == 1) {
+        if (selectedAxis.axis == d && selectedAxis.direction == 1) {
             SDL_SetRenderDrawColor(renderer, r(color), g(color), b(color), 255);
         }
 
@@ -280,16 +285,42 @@ Uint8 b(int color) {
     return color & 0xff;
 }
 
-void handleMouse(int x, int y, int xrel, int yrel) {
+void handleMouseMove(int x, int y, int xrel, int yrel) {
     SDL_Rect center = {
         navigatorContainer.x + navigatorContainer.w / 2,
         navigatorContainer.y + navigatorContainer.h / 2
     };
 
+    if (x > SCREEN_HEIGHT) {
+        selectedAxis.axis = -1;
+        return;
+    }
+
     double angle = atan((double)(center.y - y) / (double)(center.x - x)) + 0.5 * M_PI;
     angle = x <= center.x ? angle + M_PI : angle;
-    printf("%f\n", angle * 180.0 / M_PI);
+
+    double arc = M_PI / dimension;
+    double offset = M_PI / (2 * dimension);
     for (int d = 0; d < dimension * 2; d++) {
-        // -M_PI / (2 * dimension)
+        double lineAngle = d * arc;
+
+        double rangeStart = lineAngle - offset;
+        rangeStart = rangeStart < 0 ? rangeStart + 2 * M_PI : rangeStart;
+
+        double shiftEnd = lineAngle + offset - rangeStart;
+        shiftEnd = shiftEnd < 0 ? shiftEnd + 2 * M_PI : shiftEnd;
+        double shiftAngle = angle - rangeStart;
+        shiftAngle = shiftAngle < 0 ? shiftAngle + 2 * M_PI : shiftAngle;
+
+        if (shiftAngle < shiftEnd) {
+            selectedAxis.axis = d % dimension;
+            selectedAxis.direction = d / dimension == 0 ? 1 : -1;
+        }
+    }
+}
+
+void handleClick(int button, int x, int y) {
+    if (selectedAxis.axis > -1) {
+        position[selectedAxis.axis] += selectedAxis.direction;
     }
 }
