@@ -286,9 +286,10 @@ void handleMouse(int x, int y, int xrel, int yrel) {
         navigatorContainer.y + navigatorContainer.h / 2
     };
 
-    double angle = atan((double)(center.x - x) / (double)(center.y - y));
+    double angle = atan((double)(center.y - y) / (double)(center.x - x)) + 0.5 * M_PI;
+    angle = x <= center.x ? angle + M_PI : angle;
     printf("%f\n", angle * 180.0 / M_PI);
     for (int d = 0; d < dimension * 2; d++) {
-
+        // -M_PI / (2 * dimension)
     }
 }
