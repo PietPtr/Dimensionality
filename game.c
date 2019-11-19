@@ -15,18 +15,16 @@ SDL_Texture* tDimensions = NULL;
 SDL_Texture* tTiles = NULL;
 
 double totalTime = 0;
-int dimension = 4;
+int dimension = 3;
 int dimensionColors[] = {
-    0xff0000, 0x00ff00, 0x0000ff, 0x00ffff,
+    0xff0000, 0x00ff00, 0x3333ff, 0x00ffff,
     0xff00ff, 0xffff00, 0xff8000, 0x0080ff,
-    0x8080ff, 0xff0080, 0x80ff80, 0xffffff };
+    0x8080ff, 0xff0080, 0x80ff80, 0x8000ff };
 int position[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-
+int selectedAxis = -1;
 
 void init()
 {
-    printf("%i ----\n", query_dawg(position));
-
     tCharacter = loadBMP("resources/player.bmp");
     tFont = loadBMP("resources/font.bmp");
     tDimensions = loadBMP("resources/dimensions.bmp");
@@ -37,6 +35,9 @@ int events(SDL_Event* event)
 {
     if ( event->window.type == SDL_QUIT ) {
         return CODE_QUIT;
+    } else if (event->window.type == SDL_MOUSEMOTION) {
+        handleMouse(event->motion.x, event->motion.y,
+            event->motion.xrel, event->motion.yrel);
     } else {
         return CODE_NONE;
     }
@@ -53,7 +54,7 @@ void loop(SDL_Renderer* renderer, double dt, int frame)
     drawDimensions(renderer, position, 10, 25);
 
     if ( (frame - 100) % 5000 == 0 ) {
-        printf("%f\n", 1 / dt);
+        // printf("%f\n", 1 / dt);
     }
 }
 
@@ -100,15 +101,24 @@ void drawNavigator(SDL_Renderer* renderer)
 
     for (int d = 0; d < dimension; d++) {
         SDL_SetRenderDrawColor(renderer, LINE_WHITE, LINE_WHITE, LINE_WHITE, 255);
+
         int dirx = (int)(cos(angle * d + 0.5 * M_PI) * NAV_LENGTH);
         int diry = (int)(sin(angle * d + 0.5 * M_PI) * NAV_LENGTH);
 
-        SDL_RenderDrawLine(renderer,
-            center.x - dirx,
-            center.y - diry,
-            center.x + dirx,
-            center.y + diry
-        );
+        int color = dimensionColors[d];
+        if (selectedAxis % dimension == d && selectedAxis / dimension == 0) {
+            SDL_SetRenderDrawColor(renderer, r(color), g(color), b(color), 255);
+        }
+        SDL_RenderDrawLine(renderer, center.x, center.y, center.x + dirx, center.y + diry);
+        SDL_SetRenderDrawColor(renderer, LINE_WHITE, LINE_WHITE, LINE_WHITE, 255);
+
+        if (selectedAxis % dimension == d && selectedAxis / dimension == 1) {
+            SDL_SetRenderDrawColor(renderer, r(color), g(color), b(color), 255);
+        }
+
+        SDL_RenderDrawLine(renderer, center.x, center.y, center.x - dirx, center.y - diry);
+        SDL_SetRenderDrawColor(renderer, LINE_WHITE, LINE_WHITE, LINE_WHITE, 255);
+
 
         SDL_Rect upperSquare = {
             center.x - dirx - NAV_SQUARE_SIZE / 2,
@@ -268,4 +278,17 @@ Uint8 g(int color) {
 
 Uint8 b(int color) {
     return color & 0xff;
+}
+
+void handleMouse(int x, int y, int xrel, int yrel) {
+    SDL_Rect center = {
+        navigatorContainer.x + navigatorContainer.w / 2,
+        navigatorContainer.y + navigatorContainer.h / 2
+    };
+
+    double angle = atan((double)(center.x - x) / (double)(center.y - y));
+    printf("%f\n", angle * 180.0 / M_PI);
+    for (int d = 0; d < dimension * 2; d++) {
+
+    }
 }

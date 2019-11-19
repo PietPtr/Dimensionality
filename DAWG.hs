@@ -37,9 +37,9 @@ world :: Int -> Coordinate -> Tile
 world seed point = tile
     where
         primitives = [
-              Box [-2, -2, -2] [2, 2, 2]]
+              Box [-4, -4, -4] [4, 4, 4]]
 
-        negators = []--[ Box [-1, -1, -1] [1, 2, 1]]
+        negators = [ Box [-3] [3], Box [1, -3] [1, 3]]
 
         inPrimitive = foldl (||) False (map (isIn point) primitives)
         inNegator = foldl (||) False (map (isIn point) negators)
