@@ -69,6 +69,27 @@ inRange a b c = (c >= l) && (c <= h)
 query2d n = [([x, y], world 0 [x, y]) | x <- [-n..n], y <- [-n..n]]
 query3d n = [([x, y, z], world 0 [x, y, z]) | x <- [-n..n], y <- [-n..n], z <- [-n..n]]
 
+center :: Primitive -> Coordinate
+center (Sphere position _) = position
+center (Box t b) = map (\(c1, c2) -> middle c1 c2) (zip t b)
+    where
+        middle c1 c2
+            | c1 < c2 = c1 + (c2 - c1) `div` 2
+            | c1 >= c2 = c2 + (c1 - c2) `div` 2
+
+line :: Coordinate -> Coordinate -> Primitive
+line start end = if isLine then (Box start end) else (error "Not a line")
+    where
+        isLine = 1 == (sum (zipCoords (\c1 c2 -> if (c1 - c2) == 0 then 0 else 1) start end))
+
+buildLines :: Primitive -> Primitive -> [Primitive] -> [Primitive]
+buildLines startPrimitive endPrimitive [] = []
+
+connect :: Primitive -> Primitive -> [Primitive]
+connect (Box t1 b1) (Box t2 b2) = []
+
+
+
 printWorld :: [(Coordinate, Tile)] -> String
 printWorld [] = ""
 printWorld ((coords, tile):xs) = element ++ printWorld xs
