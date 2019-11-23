@@ -36,10 +36,11 @@ zipCoords f (p1:coords1) (p2:coords2) = (f p1 p2) : (zipCoords f coords1 coords2
 world :: Int -> Coordinate -> Tile
 world seed point = tile
     where
-        primitives = [
-              Box [-4, -4, -4] [4, 4, 4]]
+        primitives = [Box [-4, -4, -4, -4] [4, 4, 4, 4]]
 
-        negators = [ Box [-3] [3], Box [1, -3] [1, 3]]
+
+        negators = [Box [-2, -2, -2] [0, 0, 0], Box [1, 1, 1] [3, 3, 3]]
+              ++ connect (Box [-2, -2, -2] [0, 0, 0]) (Box [1, 1, 1] [3, 3, 3])
 
         inPrimitive = foldl (||) False (map (isIn point) primitives)
         inNegator = foldl (||) False (map (isIn point) negators)
@@ -77,16 +78,29 @@ center (Box t b) = map (\(c1, c2) -> middle c1 c2) (zip t b)
             | c1 < c2 = c1 + (c2 - c1) `div` 2
             | c1 >= c2 = c2 + (c1 - c2) `div` 2
 
-line :: Coordinate -> Coordinate -> Primitive
-line start end = if isLine then (Box start end) else (error "Not a line")
-    where
-        isLine = 1 == (sum (zipCoords (\c1 c2 -> if (c1 - c2) == 0 then 0 else 1) start end))
+connectorSegment :: Coordinate -> Coordinate -> Int -> Coordinate
+connectorSegment start end n = (take n end) ++ (drop n start)
+
+link :: [a] -> [(a, a)]
+link [] = []
+link [a, b] = [(a, b)]
+link (a:b:xs) = (a, b):(link (b:xs))
+
+-- line :: Coordinate -> Coordinate -> Primitive
+-- line start end = if isLine then (Box start end) else (error "Not a line")
+--     where
+--         isLine = 1 == (sum (zipCoords (\c1 c2 -> if (c1 - c2) == 0 then 0 else 1) start end))
 
 buildLines :: Primitive -> Primitive -> [Primitive] -> [Primitive]
 buildLines startPrimitive endPrimitive [] = []
+buildLines startPrimitive endPrimitive iets = []
 
 connect :: Primitive -> Primitive -> [Primitive]
-connect (Box t1 b1) (Box t2 b2) = []
+connect startPrimitive endPrimitive = boxes
+    where
+        points = map (connectorSegment (center startPrimitive) (center endPrimitive)) [0..6]
+        links = link points
+        boxes = map (\x -> Box (fst x) (snd x)) links
 
 
 
@@ -130,4 +144,4 @@ query_dawg positionPtr = (liftM (queryPoint) list)
 foreign export ccall query_dawg :: Ptr CInt -> IO CInt
 
 main = do
-    print $ printWorld $ query3d 3
+    print $ printWorld $ query3d 5
